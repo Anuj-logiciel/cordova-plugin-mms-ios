@@ -8,7 +8,7 @@ This plugin works with Cordova 3.x and 4.x and 5.x version and currently doesn't
 
 Using the Cordova CLI, run:
 
-    cordova plugin add https://github.com/cordova-sms/cordova-sms-plugin.git
+    cordova plugin add https://github.com/Anuj-logiciel/cordova-plugin-mms-ios.git
 
 ##Using the plugin
 HTML
