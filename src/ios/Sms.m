@@ -30,7 +30,7 @@
         else if ([param isKindOfClass:[NSMutableArray class]]) {
             recipients = param;
         }
-
+        
         // http://stackoverflow.com/questions/19951040/mfmessagecomposeviewcontroller-opens-mms-editing-instead-of-sms-and-buddy-name
         if ([recipients.firstObject isEqual: @""]) {
             [recipients replaceObjectAtIndex:0 withObject:@"?"];
@@ -63,7 +63,10 @@
             NSString *fileType = (NSString*)[[[fileName substringFromIndex:5] componentsSeparatedByString: @";"] objectAtIndex:0];
             fileType = (NSString*)[[fileType componentsSeparatedByString: @"/"] lastObject];
             NSString *base64content = (NSString*)[[fileName componentsSeparatedByString: @","] lastObject];
-            NSData *fileData = [NSData dataFromBase64String:base64content];
+            //Commented by Mayank when cordova platform updated to 6+ [May 05, 2017]
+            
+            //NSData *fileData = [NSData dataFromBase64String:base64content];
+            NSData* fileData = [[NSData alloc] initWithBase64EncodedString:base64content options:0];
             file = [NSURL fileURLWithPath:[self storeInFile:[NSString stringWithFormat:@"%@.%@", @"file", fileType] fileData:fileData]];
         } else {
             // assume anywhere else, on the local filesystem
@@ -84,22 +87,22 @@
 }
 
 - (void)cleanupStoredFiles {
-  if (_tempStoredFile != nil) {
-    NSError *error;
-    [[NSFileManager defaultManager]removeItemAtPath:_tempStoredFile error:&error];
-  }
+    if (_tempStoredFile != nil) {
+        NSError *error;
+        [[NSFileManager defaultManager]removeItemAtPath:_tempStoredFile error:&error];
+    }
 }
 
 - (void)send:(CDVInvokedUrlCommand*)command {
     self.callbackID = command.callbackId;
-
+    
     [self.commandDelegate runInBackground:^{
         // test SMS availability
         if(![self isSMSAvailable]) {
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"SMS_NOT_AVAILABLE"];
             return [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackID];
         }
-
+        
         // retrieve the options dictionnary
         NSDictionary* options = [command.arguments objectAtIndex:2];
         // parse the body parameter
@@ -108,11 +111,11 @@
         NSMutableArray *recipients = [self parseRecipients:[command.arguments objectAtIndex:0]];
         // parse the attachments
         NSArray *attachments = [options objectForKey:@"attachments"];
-            
+        
         // initialize the composer
         MFMessageComposeViewController *composeViewController = [[MFMessageComposeViewController alloc] init];
         composeViewController.messageComposeDelegate = self;
-
+        
         // add recipients
         [composeViewController setRecipients:recipients];
         
@@ -120,7 +123,7 @@
         if ((id)body != [NSNull null]) {
             [composeViewController setBody:body];
         }
-
+        
         // append attachments
         if (attachments != nil && [attachments count] > 0) {
             if(![self areAttachmentsAvailable]) {
@@ -135,7 +138,7 @@
                 }
             }
         }
-
+        
         // fire the composer
         [self.viewController presentViewController:composeViewController animated:YES completion:nil];
     }];
@@ -169,7 +172,7 @@
     
     // clean up stored files
     [self cleanupStoredFiles];
-        
+    
     // send the result
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:status messageAsString:message];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackID];
